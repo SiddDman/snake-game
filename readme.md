@@ -80,7 +80,7 @@ SDL2 (Simple DirectMedia Layer) is a cross-platform development library designed
 To compile and run the game, use the following command in your terminal:
 
 ```bash
-g++ -Iinclude -Llib game.cpp -o snake
+g++ -Iinclude -Llib  game.cpp -o snake-game -lSDL2 -lSDL2main -lSDL2_ttf
 ```
 
 Once compiled run the following command to launch the game.
