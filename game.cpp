@@ -1,17 +1,13 @@
 #include <bits/stdc++.h>
 #include <SDL2/SDL.h>
+
 #undef main
 
 using namespace std;
 
-int main(int argc, char *argv[])
+void startGame(int &window_height, int &window_width, auto &renderer, bool &walls)
 {
-
-    SDL_Init(SDL_INIT_EVERYTHING);
-    auto window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1000, 780, 0);
-    auto renderer = SDL_CreateRenderer(window, -1, 0);
     SDL_Event e;
-
     enum Direction
     {
         DOWN,
@@ -21,19 +17,34 @@ int main(int argc, char *argv[])
     };
 
     int dir = 0;
+
     // Snake starting position
-    SDL_Rect head{500, 390, 10, 10};
+    SDL_Rect head{window_width / 2, window_height / 2, 10, 10};
+
+    SDL_Rect topWall{0, 0, window_width, 0};                     // Top border
+    SDL_Rect bottomWall{0, window_height - 10, window_width, 0}; // Bottom border
+    SDL_Rect leftWall{0, 0, 0, window_height};                   // Left border
+    SDL_Rect rightWall{window_width - 10, 0, 0, window_height};  // Right border
+
+    // Walls
+    if (walls)
+    {
+        topWall.h = 10;    // Top border
+        bottomWall.h = 10; // Bottom border
+        leftWall.w = 10;   // Left border
+        rightWall.w = 10;  // Right border
+    }
+
     // Snake body - Using deque as we have to add in left end when head is towards right and vice versa. Similar for vecrtical case.
     deque<SDL_Rect> rq;
-    int size=1;
+    int size = 1;
 
     // Food
-    vector<SDL_Rect> food;
-
-    // Create Food on the map
-    for (int i = 0; i < 100; i++)
-        food.emplace_back(rand() % 100 * 0, rand() % 100 * 10, 10, 10);
-
+    SDL_Rect food;
+    food.x = rand() % 980;
+    food.y = rand() % 760;
+    food.w = 10;
+    food.h = 10;
 
     // Game Loop
     bool running = true;
@@ -65,7 +76,7 @@ int main(int argc, char *argv[])
                     break;
                 case SDLK_ESCAPE:
                     SDL_Quit();
-                    return EXIT_SUCCESS;
+                    return;
 
                 default:
                     break;
@@ -98,31 +109,109 @@ int main(int argc, char *argv[])
         switch (dir)
         {
         case DOWN:
-            head.y += 10;
+            head.y += 5;
             break;
         case UP:
-            head.y -= 10;
+            head.y -= 5;
             break;
         case LEFT:
-            head.x -= 10;
+            head.x -= 5;
             break;
         case RIGHT:
-            head.x += 10;
+            head.x += 5;
             break;
         default:
             break;
         }
 
+        // Collsion Detection
+        // Collision between food and head of snake
+        // if (head.x == food.x && head.y == food.y)
+        if (SDL_HasIntersection(&head, &food))
+        {
+            size += 5;
+            food.x = rand() % 980;
+            food.y = rand() % 760;
+        }
+
+        // Collision between head and tail
+        for_each(rq.begin(), rq.end(), [&](auto &tail)
+                 {
+            if(head.x==tail.x && head.y==tail.y){
+                size=1;
+                // running=false;
+            } });
+
+        // Collision between snake and wall
+        if (walls)
+        {
+            if (SDL_HasIntersection(&head, &topWall) || SDL_HasIntersection(&head, &bottomWall) || SDL_HasIntersection(&head, &leftWall) || SDL_HasIntersection(&head, &rightWall))
+            {
+                running = false; // Stop the game if the snake hits a wall
+            }
+        }
+        else
+        {
+            if (head.y < 0)
+                head.y = window_height;
+            else if (head.y >= window_height)
+                head.y = 0;
+            else if (head.x >= window_width)
+                head.x = 0;
+            else if (head.x < 0)
+                head.x = window_width;
+        }
+
+        // Adding food to the body of the snake
+        rq.push_front(head);
+
+        // if the size of the queue is more than the size variable, then it means snake has hit his tail and now the size needs to be reduced to 1
+        while (rq.size() > size)
+            rq.pop_back();
+
         // Clear Window
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // Draw Body
+        // Draw the snake
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderFillRect(renderer, &head);
+        for_each(rq.begin(), rq.end(), [&](auto &snake_segment)
+                 { SDL_RenderFillRect(renderer, &snake_segment); });
+
+        // Draw the food
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer, &food);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderFillRect(renderer, &topWall);
+        SDL_RenderFillRect(renderer, &bottomWall);
+        SDL_RenderFillRect(renderer, &leftWall);
+        SDL_RenderFillRect(renderer, &rightWall);
+
         SDL_RenderPresent(renderer);
-        SDL_Delay(10);
+        SDL_Delay(25);
     }
+}
+
+int main(int argc, char *argv[])
+{
+
+    SDL_Init(SDL_INIT_EVERYTHING);
+    int window_width = 1200;
+    int window_height = 780;
+
+    auto window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height, 0);
+    auto renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_Event e;
+    bool walls = true;
+
+    // Intro Screen code
+    int gameMode;
+
+    if (gameMode == 1)
+        walls = 1;
+
+    // startGame(window_height, window_width, renderer, walls);
+    startGame(window_height, window_width, renderer, walls);
 
     return 0;
 }
