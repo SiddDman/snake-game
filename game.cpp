@@ -42,10 +42,25 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
 
     // Food
     SDL_Rect food;
-    food.x = rand() % 980;
-    food.y = rand() % 760;
+    int num = rand();
+    food.x = num % window_width;
+    food.y = num % (window_height - 20);
+    if (food.y < window_height / 2)
+        food.y += 21;
+    if (walls)
+    {
+        if (food.x < window_width / 2)
+            food.x += leftWall.w + 5;
+        else
+            food.x -= (leftWall.w + 5);
+        if (food.y < window_height / 2)
+            food.y += topWall.h + 5;
+        else
+            food.y -= (topWall.h + 5);
+    }
     food.w = 10;
     food.h = 10;
+
 
     // Game Loop
     TTF_Font *font = TTF_OpenFont("fonts/PixelLetters.ttf", 20); // 20px font size for the score
@@ -61,32 +76,36 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
         while (SDL_PollEvent(&e))
         {
             if (e.type == SDL_QUIT)
+            {
                 running = false;
+                return;
+            }
             else if (e.type == SDL_KEYDOWN)
             {
                 switch (e.key.keysym.sym)
                 {
                 case SDLK_RIGHT:
-                    cout << "Right key was pressed" << endl;
+                    // cout << "Right key was pressed" << endl;
                     if (dir != LEFT)
                         dir = RIGHT;
                     break;
                 case SDLK_UP:
-                    cout << "Up key was pressed" << endl;
+                    // cout << "Up key was pressed" << endl;
                     if (dir != DOWN)
                         dir = UP;
                     break;
                 case SDLK_DOWN:
-                    cout << "Down key was pressed" << endl;
+                    // cout << "Down key was pressed" << endl;
                     if (dir != UP)
                         dir = DOWN;
                     break;
                 case SDLK_LEFT:
-                    cout << "Left key was pressed" << endl;
+                    // cout << "Left key was pressed" << endl;
                     if (dir != RIGHT)
                         dir = LEFT;
                     break;
                 case SDLK_ESCAPE:
+                    running = false;
                     SDL_Quit();
                     return;
 
@@ -99,16 +118,16 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
                 switch (e.key.keysym.sym)
                 {
                 case SDLK_RIGHT:
-                    cout << "Right key was released" << endl;
+                    // cout << "Right key was released" << endl;
                     break;
                 case SDLK_UP:
-                    cout << "Up key was released" << endl;
+                    // cout << "Up key was released" << endl;
                     break;
                 case SDLK_DOWN:
-                    cout << "Down key was released" << endl;
+                    // cout << "Down key was released" << endl;
                     break;
                 case SDLK_LEFT:
-                    cout << "Left key was released" << endl;
+                    // cout << "Left key was released" << endl;
                     break;
 
                 default:
@@ -138,19 +157,25 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
 
         // Collsion Detection
         // Collision between food and head of snake
-        // if (head.x == food.x && head.y == food.y)
         if (SDL_HasIntersection(&head, &food))
         {
             size += 5;
+            int num = rand();
+            food.x = num % window_width;
+            food.y = num % (window_height - 20);
+
+            if (food.y < window_height / 2)
+                food.y += 21;
             if (walls)
             {
-                food.x = leftWall.w + rand() % (window_width - 2 * leftWall.w);
-                food.y = 35 + rand() % (window_height - 2 * topWall.h);
-            }
-            else
-            {
-                food.x = rand() % window_width;
-                food.y = 35 + rand() % window_height;
+                if (food.x < window_width / 2)
+                    food.x += leftWall.w + 5;
+                else
+                    food.x -= (leftWall.w + 5);
+                if (food.y < window_height / 2)
+                    food.y += topWall.h + 5;
+                else
+                    food.y -= (topWall.h + 5);
             }
             score += 10;
         }
@@ -192,12 +217,12 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
         SDL_RenderClear(renderer);
 
         // Draw the snake
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         for_each(rq.begin(), rq.end(), [&](auto &snake_segment)
                  { SDL_RenderFillRect(renderer, &snake_segment); });
 
         // Draw the food
-        SDL_SetRenderDrawColor(renderer, 28, 255, 15, 255);
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_RenderFillRect(renderer, &food);
 
         // Draw the walls if the walls option is enabled
@@ -207,22 +232,51 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
         SDL_RenderFillRect(renderer, &leftWall);
         SDL_RenderFillRect(renderer, &rightWall);
 
-        // Render the score at the top right
-        string scoreText = "Score: " + std::to_string(score);
+        // Render Snake Game at the top left
+        string scoreText = "SNAKE GAME ";
         SDL_Color color = {28, 255, 15}; // White text color
         SDL_Surface *scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), color);
         SDL_Texture *scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
 
         // Position for the score (top-right)
         SDL_Rect scoreRect;
+        scoreRect.x = 0;  // Align text to the right
+        scoreRect.y = 10; // Slightly below the top
+        scoreRect.w = 140;
+        scoreRect.h = 30;
+        SDL_RenderCopy(renderer, scoreTexture, nullptr, &scoreRect);
+        SDL_FreeSurface(scoreSurface);
+        SDL_DestroyTexture(scoreTexture);
+
+        // Render the mode in the centre at the centre
+        scoreText = walls ? "Classic Mode" : "Borderless";
+        color = {28, 255, 15}; // White text color
+        scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), color);
+        scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+
+        // Position for the mode in centre at the top
+        scoreRect.x = window_width / 2 - 70; // Align text to the right
+        scoreRect.y = 10;                    // Slightly below the top
+        scoreRect.w = 140;
+        scoreRect.h = 30;
+        SDL_RenderCopy(renderer, scoreTexture, nullptr, &scoreRect);
+        SDL_FreeSurface(scoreSurface);
+        SDL_DestroyTexture(scoreTexture);
+
+        // Render the score at the top right
+        scoreText = "Score: " + std::to_string(score);
+        color = {28, 255, 15}; // White text color
+        scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), color);
+        scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+
+        // Position for the score (top-right)
         scoreRect.x = window_width - 150; // Align text to the right
         scoreRect.y = 10;                 // Slightly below the top
         scoreRect.w = 140;
         scoreRect.h = 30;
-
         SDL_RenderCopy(renderer, scoreTexture, nullptr, &scoreRect);
-
         SDL_FreeSurface(scoreSurface);
+
         SDL_DestroyTexture(scoreTexture);
 
         SDL_RenderPresent(renderer);
@@ -349,7 +403,7 @@ void showGameOverScreen(SDL_Renderer *renderer, TTF_Font *font, bool &gameRunnin
             if (e.type == SDL_QUIT)
             {
                 SDL_Quit();
-                exit(0);
+                return;
             }
             else if (e.type == SDL_KEYDOWN)
             {
