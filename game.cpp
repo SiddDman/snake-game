@@ -22,10 +22,10 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
     // Snake starting position
     SDL_Rect head{window_width / 2, window_height / 2, 10, 10};
 
-    SDL_Rect topWall{0, 0, window_width, 0};                     // Top border
+    SDL_Rect topWall{0, 35, window_width, 0};                    // Top border
     SDL_Rect bottomWall{0, window_height - 10, window_width, 0}; // Bottom border
-    SDL_Rect leftWall{0, 0, 0, window_height};                   // Left border
-    SDL_Rect rightWall{window_width - 10, 0, 0, window_height};  // Right border
+    SDL_Rect leftWall{0, 35, 0, window_height};                  // Left border
+    SDL_Rect rightWall{window_width - 10, 35, 0, window_height}; // Right border
 
     // Walls
     if (walls)
@@ -48,7 +48,14 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
     food.h = 10;
 
     // Game Loop
+    TTF_Font *font = TTF_OpenFont("fonts/PixelLetters.ttf", 20); // 20px font size for the score
+    if (!font)
+    {
+        cerr << "Failed to load font: " << TTF_GetError() << endl;
+        exit(1);
+    }
     bool running = true;
+    int score = 0;
     while (running)
     {
         while (SDL_PollEvent(&e))
@@ -61,19 +68,23 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
                 {
                 case SDLK_RIGHT:
                     cout << "Right key was pressed" << endl;
-                    dir = RIGHT;
+                    if (dir != LEFT)
+                        dir = RIGHT;
                     break;
                 case SDLK_UP:
                     cout << "Up key was pressed" << endl;
-                    dir = UP;
+                    if (dir != DOWN)
+                        dir = UP;
                     break;
                 case SDLK_DOWN:
                     cout << "Down key was pressed" << endl;
-                    dir = DOWN;
+                    if (dir != UP)
+                        dir = DOWN;
                     break;
                 case SDLK_LEFT:
                     cout << "Left key was pressed" << endl;
-                    dir = LEFT;
+                    if (dir != RIGHT)
+                        dir = LEFT;
                     break;
                 case SDLK_ESCAPE:
                     SDL_Quit();
@@ -131,32 +142,38 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
         if (SDL_HasIntersection(&head, &food))
         {
             size += 5;
-            food.x = rand() % 980;
-            food.y = rand() % 760;
+            if (walls)
+            {
+                food.x = leftWall.w + rand() % (window_width - 2 * leftWall.w);
+                food.y = 35 + rand() % (window_height - 2 * topWall.h);
+            }
+            else
+            {
+                food.x = rand() % window_width;
+                food.y = 35 + rand() % window_height;
+            }
+            score += 10;
         }
 
         // Collision between head and tail
         for_each(rq.begin(), rq.end(), [&](auto &tail)
                  {
             if(head.x==tail.x && head.y==tail.y){
-                size=1;
-                // running=false;
+                running=false;
             } });
 
         // Collision between snake and wall
         if (walls)
         {
             if (SDL_HasIntersection(&head, &topWall) || SDL_HasIntersection(&head, &bottomWall) || SDL_HasIntersection(&head, &leftWall) || SDL_HasIntersection(&head, &rightWall))
-            {
                 running = false; // Stop the game if the snake hits a wall
-            }
         }
         else
         {
-            if (head.y < 0)
+            if (head.y < 30)
                 head.y = window_height;
             else if (head.y >= window_height)
-                head.y = 0;
+                head.y = 30;
             else if (head.x >= window_width)
                 head.x = 0;
             else if (head.x < 0)
@@ -180,13 +197,33 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
                  { SDL_RenderFillRect(renderer, &snake_segment); });
 
         // Draw the food
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 28, 255, 15, 255);
         SDL_RenderFillRect(renderer, &food);
+
+        // Draw the walls if the walls option is enabled
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderFillRect(renderer, &topWall);
         SDL_RenderFillRect(renderer, &bottomWall);
         SDL_RenderFillRect(renderer, &leftWall);
         SDL_RenderFillRect(renderer, &rightWall);
+
+        // Render the score at the top right
+        string scoreText = "Score: " + std::to_string(score);
+        SDL_Color color = {28, 255, 15}; // White text color
+        SDL_Surface *scoreSurface = TTF_RenderText_Solid(font, scoreText.c_str(), color);
+        SDL_Texture *scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+
+        // Position for the score (top-right)
+        SDL_Rect scoreRect;
+        scoreRect.x = window_width - 150; // Align text to the right
+        scoreRect.y = 10;                 // Slightly below the top
+        scoreRect.w = 140;
+        scoreRect.h = 30;
+
+        SDL_RenderCopy(renderer, scoreTexture, nullptr, &scoreRect);
+
+        SDL_FreeSurface(scoreSurface);
+        SDL_DestroyTexture(scoreTexture);
 
         SDL_RenderPresent(renderer);
         SDL_Delay(25);
