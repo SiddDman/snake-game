@@ -11,6 +11,7 @@ This repository contains the source code for a classic snake game developed usin
   - [About SDL2](#about-sdl2)
   - [Steps to Download and Set Up SDL2_ttf](#steps-to-download-and-set-up-sdl2_ttf)
   - [Building and Running the Game](#building-and-running-the-game)
+  - [Folder Structure](#folder-structure)
 
 ## Game Features
 
@@ -57,6 +58,23 @@ SDL2 (Simple DirectMedia Layer) is a cross-platform development library designed
 
 3. To **download TTF fonts** visit: [FontSpace](https://www.fontspace.com/category/ttf).
 
+## Folder Structure
+```bash
+.
+└── snake-game/
+    ├── include
+    ├── SDL2/
+    │   ├── all the files from the unzipped SDL2.tar.gz's include folder and
+    │   └── also unzipped SDL2_ttf's include folder
+    ├── lib/
+    │   ├── all the files from the unzipped SDL2.tar.gz's lib folder and 
+    │   └── also unzipped SDL2_ttf's lib folder
+    ├── fonts/
+    │   └── store the downloaded fonts here
+    ├── game.cpp
+    ├── SDL2_ttf.dll
+    └── SDL2.dll
+```
 ### Building and Running the Game
 
 To compile and run the game, use the following command in your terminal:
