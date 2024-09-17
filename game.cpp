@@ -271,7 +271,7 @@ void showIntroScreen(SDL_Renderer *renderer, TTF_Font *font, bool &walls, int &w
         SDL_DestroyTexture(textTexture);
 
         // Render instructions text
-        textSurface = TTF_RenderText_Solid(font, "Press 1 for Classic mode or 2 for Borderless mode", textColor);
+        textSurface = TTF_RenderText_Solid(font, "Press [ 1 ] for Classic mode or [ 2 ] for Borderless mode", textColor);
         textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
         SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
         textRect.x = instructionRect.x + (instructionRect.w - textRect.w) / 2;
@@ -283,6 +283,114 @@ void showIntroScreen(SDL_Renderer *renderer, TTF_Font *font, bool &walls, int &w
         // Present the renderer
         SDL_RenderPresent(renderer);
     }
+
+    // Clean Up
+    TTF_CloseFont(font);
+}
+
+void showGameOverScreen(SDL_Renderer *renderer, TTF_Font *font, bool &gameRunning, int &window_width, int &window_height, bool &walls)
+{
+    SDL_Event e;
+    SDL_Color textColor = {28, 255, 15}; // White text
+
+    // Create text surface and texture for the game over screen
+    SDL_Surface *textSurface;
+    SDL_Texture *textTexture;
+
+    SDL_Rect textRect = {0, 0, 0, 0};
+    SDL_Rect gameOverRect = {window_width / 4, window_height / 6, 400, 100};
+    SDL_Rect optionRect = {window_width / 4, window_height / 2, 400, 100};
+
+    // Load large font for game over text
+    TTF_Font *largeFont = TTF_OpenFont("fonts/PixelLetters.ttf", 100);
+
+    while (true)
+    {
+        // Handle events
+        while (SDL_PollEvent(&e))
+        {
+            if (e.type == SDL_QUIT)
+            {
+                SDL_Quit();
+                exit(0);
+            }
+            else if (e.type == SDL_KEYDOWN)
+            {
+                switch (e.key.keysym.sym)
+                {
+                case SDLK_1: // Replay in Classic Mode
+                    walls = true;
+                    startGame(window_height, window_width, renderer, walls);
+                    return;
+                case SDLK_2: // Replay in Borderless Mode
+                    walls = false;
+                    startGame(window_height, window_width, renderer, walls);
+                    return;
+                case SDLK_q:
+                    SDL_Quit();
+                    return;
+                case SDLK_ESCAPE: // Quit
+                    SDL_Quit();
+                    return;
+                default:
+                    break;
+                }
+            }
+        }
+
+        // Clear the renderer
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        // Render game over text
+        textSurface = TTF_RenderText_Solid(largeFont, "GAME OVER !!!!!", textColor);
+        textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+        textRect.x = gameOverRect.x + 50;
+        textRect.y = gameOverRect.y + (gameOverRect.h - textRect.h) / 3;
+        SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+
+        // Render options text
+        textSurface = TTF_RenderText_Solid(font, "[ 1 ]: Play again in Classic Mode", textColor);
+        textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+        textRect.x = optionRect.x;
+        textRect.y = optionRect.y + (optionRect.h - textRect.h) / 2;
+        // textRect.x = optionRect.x;
+        // textRect.y = optionRect.y;
+        SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+
+        // // Render second option text
+        textSurface = TTF_RenderText_Solid(font, "[ 2 ]: Play again in Borderless Mode", textColor);
+        textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+        textRect.x = optionRect.x;
+        textRect.y = optionRect.y + (optionRect.h - textRect.h) / 2 + 40;
+        SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+
+        // Render quit option text
+        textSurface = TTF_RenderText_Solid(font, "[ Q ]: Quit", textColor);
+        textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+        textRect.x = optionRect.x - 1;
+        textRect.y = optionRect.y + (optionRect.h - textRect.h) / 2 + 85;
+        SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+
+        // Present the renderer
+        SDL_RenderPresent(renderer);
+    }
+
+    // Clean Up
+    TTF_CloseFont(font);
+    TTF_CloseFont(largeFont);
 }
 
 int main(int argc, char *argv[])
@@ -312,6 +420,11 @@ int main(int argc, char *argv[])
 
     // Start the Game
     startGame(window_height, window_width, renderer, walls);
+
+    // Game Over Screen
+    bool quit = false;
+    while (!quit)
+        showGameOverScreen(renderer, font, quit, window_width, window_height, walls);
 
     TTF_CloseFont(font);
     TTF_Quit();
