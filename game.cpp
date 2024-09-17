@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #undef main
 
@@ -192,10 +193,103 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
     }
 }
 
+void showIntroScreen(SDL_Renderer *renderer, TTF_Font *font, bool &walls, int &window_width, int &window_height)
+{
+    SDL_Event e;
+    SDL_Color textColor = {28, 255, 15}; // White text
+
+    // Create text surface and texture for the intro screen
+    SDL_Surface *textSurface;
+    SDL_Texture *textTexture;
+
+    // Intro Screen Text
+    SDL_Rect textRect = {0, 0, 0, 0};
+    SDL_Rect titleRect = {window_width / 4 + 70, window_height / 4, 400, 100};
+    SDL_Rect modeRect = {window_width / 4 + 100, window_height / 2, 400, 100};
+    SDL_Rect instructionRect = {window_width / 4 + 150, static_cast<int>(window_height / 1.5), 400, 100};
+
+    while (true)
+    {
+        // Handle events
+        while (SDL_PollEvent(&e))
+        {
+            if (e.type == SDL_QUIT)
+            {
+                SDL_Quit();
+                exit(0);
+            }
+            else if (e.type == SDL_KEYDOWN)
+            {
+                switch (e.key.keysym.sym)
+                {
+                case SDLK_1:
+                    walls = true;
+                    return;
+                case SDLK_2:
+                    walls = false;
+                    return;
+                case SDLK_ESCAPE:
+                    SDL_Quit();
+                    exit(0);
+                default:
+                    break;
+                }
+            }
+        }
+
+        // Clear the renderer
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        // Render title text
+        textSurface = TTF_RenderText_Solid(font, "Snake Game", textColor);
+        textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+        textRect.x = titleRect.x + (titleRect.w - textRect.w) / 2;
+        textRect.y = titleRect.y + (titleRect.h - textRect.h) / 2;
+        SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+
+        // Render mode selection text
+        textSurface = TTF_RenderText_Solid(font, "[ 1 ]: Classic (Walls)", textColor);
+        textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+        textRect.x = modeRect.x;
+        textRect.y = modeRect.y - 40;
+        SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+
+        textSurface = TTF_RenderText_Solid(font, "[ 2 ]: Borderless", textColor);
+        textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+        textRect.x = modeRect.x - 1;
+        textRect.y = modeRect.y;
+        SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+
+        // Render instructions text
+        textSurface = TTF_RenderText_Solid(font, "Press 1 for Classic mode or 2 for Borderless mode", textColor);
+        textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+        SDL_QueryTexture(textTexture, nullptr, nullptr, &textRect.w, &textRect.h);
+        textRect.x = instructionRect.x + (instructionRect.w - textRect.w) / 2;
+        textRect.y = instructionRect.y + (instructionRect.h - textRect.h) / 2;
+        SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+        SDL_FreeSurface(textSurface);
+        SDL_DestroyTexture(textTexture);
+
+        // Present the renderer
+        SDL_RenderPresent(renderer);
+    }
+}
+
 int main(int argc, char *argv[])
 {
 
     SDL_Init(SDL_INIT_EVERYTHING);
+    TTF_Init();
     int window_width = 1200;
     int window_height = 780;
 
@@ -204,14 +298,26 @@ int main(int argc, char *argv[])
     SDL_Event e;
     bool walls = true;
 
+    // Load font
+    TTF_Font *font = TTF_OpenFont("fonts/PixelLetters.ttf", 50);
+    if (!font)
+    {
+        cerr << "Failed to load font" << endl;
+        SDL_Quit();
+        return -1;
+    }
+
     // Intro Screen code
-    int gameMode;
+    showIntroScreen(renderer, font, walls, window_width, window_height);
 
-    if (gameMode == 1)
-        walls = 1;
-
-    // startGame(window_height, window_width, renderer, walls);
+    // Start the Game
     startGame(window_height, window_width, renderer, walls);
+
+    TTF_CloseFont(font);
+    TTF_Quit();
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 
     return 0;
 }
