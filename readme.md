@@ -58,5 +58,5 @@ The game keeps track of the score the user achieves. Every time you eat the food
 
 When the player loses (either by colliding with the wall or their own tail), the game transitions to a game over screen. Players are given two options:
 
-- **Play Again:** Restart the game.
+- **Play Again:** Restart the game in Classic or Borderless mode.
 - **Exit:** Close the game.
