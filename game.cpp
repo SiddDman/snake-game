@@ -1,13 +1,8 @@
 #include <bits/stdc++.h>
-
-// #include "include/SDL2/SDL.h"
 #include <SDL2/SDL.h>
-
 #undef main
 
 using namespace std;
-
-const int N = 1e9 + 7;
 
 int main(int argc, char *argv[])
 {
@@ -26,7 +21,21 @@ int main(int argc, char *argv[])
     };
 
     int dir = 0;
+    // Snake starting position
     SDL_Rect head{500, 390, 10, 10};
+    // Snake body - Using deque as we have to add in left end when head is towards right and vice versa. Similar for vecrtical case.
+    deque<SDL_Rect> rq;
+    int size=1;
+
+    // Food
+    vector<SDL_Rect> food;
+
+    // Create Food on the map
+    for (int i = 0; i < 100; i++)
+        food.emplace_back(rand() % 100 * 0, rand() % 100 * 10, 10, 10);
+
+
+    // Game Loop
     bool running = true;
     while (running)
     {
