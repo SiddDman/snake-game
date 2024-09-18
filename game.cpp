@@ -61,7 +61,6 @@ void startGame(int &window_height, int &window_width, auto &renderer, bool &wall
     food.w = 10;
     food.h = 10;
 
-
     // Game Loop
     TTF_Font *font = TTF_OpenFont("fonts/PixelLetters.ttf", 20); // 20px font size for the score
     if (!font)
