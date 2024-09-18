@@ -87,6 +87,7 @@ g++ -Iinclude -Llib  game.cpp -o snake-game -lSDL2 -lSDL2main -lSDL2_ttf
 Once compiled run the following command to launch the game.
 ```bash
 .\snake-game.exe
+```
 
 ## Screenshots
 ![Intro Screen](/screenshots/intro%20screen.jpg)
