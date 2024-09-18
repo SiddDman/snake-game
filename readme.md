@@ -12,6 +12,7 @@ This repository contains the source code for a classic snake game developed usin
   - [Steps to Download and Set Up SDL2_ttf](#steps-to-download-and-set-up-sdl2_ttf)
   - [Building and Running the Game](#building-and-running-the-game)
   - [Folder Structure](#folder-structure)
+- [Screenshots](#screenshots)
 
 ## Game Features
 
@@ -87,3 +88,11 @@ Once compiled run the following command to launch the game.
 ```bash
 .\snake-game.exe
 
+## Screenshots
+![Intro Screen](/screenshots/intro%20screen.jpg)
+
+![Classic Mode](/screenshots/classic%20mode.jpg)
+
+![Borderless Mode](/screenshots/borderless.jpg)
+
+![Game Over!!!](/screenshots/gameover.jpg)
