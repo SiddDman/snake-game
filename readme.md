@@ -90,10 +90,10 @@ Once compiled run the following command to launch the game.
 ```
 
 ## Screenshots
-![Intro Screen](/screenshots/intro%20screen.jpg)
+![Intro Screen](/screenshots/intro_screen.jpg)
 
-![Classic Mode](/screenshots/classic%20mode.jpg)
+![Classic Mode](/screenshots/classic_mode.jpg)
 
 ![Borderless Mode](/screenshots/borderless.jpg)
 
-![Game Over!!!](/screenshots/gameover.jpg)
+![Game Over!!!](/screenshots/game_over.jpg)
